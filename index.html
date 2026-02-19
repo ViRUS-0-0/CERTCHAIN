@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { background-color: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .gradient-text { background: linear-gradient(90deg, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gradient-text { background: linear-gradient(90deg, #60a5fa, #a855f7); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
 
     </style>
@@ -32,6 +32,7 @@
         </div>
         <div class="hidden md:flex gap-8 text-[11px] uppercase tracking-widest font-bold opacity-70">
             <a href="#problem" class="hover:text-blue-400 transition">Problem</a>
+            <a href="#objectives" class="hover:text-blue-400 transition">Objectives</a>
             <a href="#techstack" class="hover:text-blue-400 transition">Tech Stack</a>
             <a href="#results" class="hover:text-blue-400 transition">Results</a>
             <a href="#team" class="hover:text-blue-400 transition">Team</a>
@@ -51,18 +52,60 @@
         <section id="problem" class="grid md:grid-cols-2 gap-12 items-stretch">
             <div class="glass p-10 rounded-[2.5rem] flex flex-col justify-center border-l-4 border-blue-600">
                 <h2 class="text-3xl font-extrabold mb-6">Problem Statement</h2>
-                <p class="text-slate-400 leading-relaxed text-justify">
-                    Digital certificates are currently prone to forgery, difficult to verify instantly, and lack a unified global standard for validation.
-                </p>
+                <ul class="text-slate-400 leading-relaxed space-y-4">
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-1"></i>
+                        <span><strong>Forgery:</strong> Educational certificates are often forged or tampered with.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-database text-red-500 mt-1"></i>
+                        <span><strong>Centralization:</strong> Databases are prone to manipulation and data loss.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fas fa-clock text-red-500 mt-1"></i>
+                        <span><strong>Inefficiency:</strong> Manual verification is slow, inconsistent, and burdensome.</span>
+                    </li>
+                </ul>
             </div>
             <div class="space-y-6">
                 <div class="glass p-7 rounded-3xl border-r-4 border-blue-500/50">
-                    <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-2">Literature Review / Market Research</h3>
-                    <p class="text-sm text-slate-500 italic">Traditional systems rely on centralized databases which are single points of failure and slow to update.</p>
+                    <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest mb-2">Proposed Solution</h3>
+                    <p class="text-sm text-slate-500 italic">
+                        Certificates are <strong>hashed and stored on Ethereum</strong> via smart contracts. Verification is instant via <strong>QR code scanning</strong>, ensuring a tamper-proof system without third-party involvement.
+                    </p>
                 </div>
                 <div class="glass p-7 rounded-3xl border-r-4 border-purple-500/50">
-                    <h3 class="text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">Research Gap / Innovation</h3>
-                    <p class="text-sm text-slate-500 italic">We utilize <strong>Ethereum Smart Contracts</strong> to create immutable, cryptographically secured records that are instantly verifiable from anywhere in the world.</p>
+                    <h3 class="text-purple-400 font-bold text-xs uppercase tracking-widest mb-2">Innovation</h3>
+                    <p class="text-sm text-slate-500 italic">
+                        We leverage <strong>Decentralized Storage (IPFS)</strong> and <strong>Blockchain Immutability</strong> to create a unified, global standard for digital credentials.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="objectives" class="glass p-10 rounded-[3rem] border-t-4 border-purple-500 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/20 blur-[100px] rounded-full pointer-events-none"></div>
+            <h2 class="text-3xl font-black mb-12 text-center uppercase tracking-tight relative z-10">Project <span class="text-purple-500">Objectives</span></h2>
+            <div class="grid md:grid-cols-4 gap-6 relative z-10">
+                <div class="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition duration-300">
+                    <div class="text-purple-400 text-3xl mb-4"><i class="fas fa-shield-alt"></i></div>
+                    <h3 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-300">Security</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Prevent forgery using blockchain's immutable ledger for authenticity.</p>
+                </div>
+                <div class="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition duration-300">
+                    <div class="text-blue-400 text-3xl mb-4"><i class="fas fa-eye"></i></div>
+                    <h3 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-300">Transparency</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Publicly verifiable certificates ensuring a transparent ecosystem.</p>
+                </div>
+                <div class="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition duration-300">
+                    <div class="text-green-400 text-3xl mb-4"><i class="fas fa-bolt"></i></div>
+                    <h3 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-300">Efficiency</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Automated issuance via smart contracts reduces administrative burden.</p>
+                </div>
+                <div class="p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/50 transition duration-300">
+                    <div class="text-pink-400 text-3xl mb-4"><i class="fas fa-globe"></i></div>
+                    <h3 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-300">Accessibility</h3>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">Global, permanent verification without centralized server dependency.</p>
                 </div>
             </div>
         </section>
@@ -77,9 +120,11 @@
                     </div>
                     <h3 class="font-bold mb-3 uppercase text-xs tracking-widest text-slate-200">Frontend</h3>
                     <div class="flex flex-wrap justify-center gap-2">
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">React + Vite</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">React (V18+)</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Vite</span>
                         <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">TailwindCSS</span>
                         <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Framer Motion</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Lucide / Heroicons</span>
                     </div>
                 </div>
 
@@ -90,21 +135,23 @@
                     </div>
                     <h3 class="font-bold mb-3 uppercase text-xs tracking-widest text-slate-200">Blockchain</h3>
                     <div class="flex flex-wrap justify-center gap-2">
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Solidity</span>
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Hardhat</span>
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Ethers.js</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Solidity (Smart Contract)</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Ethers.js (V6)</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Sepolia Testnet</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">MetaMask / WalletConnect</span>
                     </div>
                 </div>
 
-                <!-- Tools/Deployment Card -->
+                <!-- Architecture/Tools Card -->
                 <div class="glass p-8 rounded-3xl text-center group hover:bg-white/5 transition-all duration-300">
                     <div class="w-16 h-16 mx-auto bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 border border-green-500/20 group-hover:border-green-500/50 transition-colors">
-                        <i class="fas fa-tools text-green-400 text-3xl"></i>
+                        <i class="fas fa-network-wired text-green-400 text-3xl"></i>
                     </div>
-                    <h3 class="font-bold mb-3 uppercase text-xs tracking-widest text-slate-200">Tools & Workflow</h3>
+                    <h3 class="font-bold mb-3 uppercase text-xs tracking-widest text-slate-200">Architecture</h3>
                     <div class="flex flex-wrap justify-center gap-2">
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Git/GitHub</span>
-                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Metamask</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">Serverless DApp</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">IPFS / Pinata</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-slate-400 border border-slate-700">PWA Ready</span>
                         <a href="http://localhost:5173" target="_blank" class="px-3 py-1 bg-green-600/20 text-green-400 border border-green-500/50 rounded-full text-[10px] font-bold hover:bg-green-600 hover:text-white transition-all">
                             LIVE DEMO <i class="fas fa-external-link-alt ml-1"></i>
                         </a>
@@ -141,6 +188,7 @@
                     <p class="font-black text-xl text-slate-100">Om Vanwari</p>
                     <p class="text-[10px] text-slate-500 mt-1">2427030783</p>
                 </div>
+
             </div>
         </section>
     </main>
