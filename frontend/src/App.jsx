@@ -10,7 +10,7 @@ import { WalletProvider } from './context/WalletContext';
 function App() {
   return (
     <WalletProvider>
-      <Router>
+      <Router basename="/CERTCHAIN/frontend">
         <div className="min-h-screen flex flex-col bg-background selection:bg-black selection:text-white">
           <Navbar />
 
