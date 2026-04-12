@@ -1,0 +1,33 @@
+export const theme = {
+  colors: {
+    primary: '#18181B',
+    secondary: '#3F3F46',
+    cta: '#2563EB',
+    background: '#F4F4F5',
+    surface: 'rgba(255, 255, 255, 0.65)',
+    surfaceSolid: '#FFFFFF',
+    border: 'rgba(228, 228, 231, 0.4)',
+    borderSolid: '#E4E4E7',
+    subtext: '#71717A',
+    success: '#16A34A',
+    successBg: '#DCFCE7',
+    error: '#DC2626',
+    errorBg: '#FEE2E2',
+    glassHighlight: 'rgba(255, 255, 255, 0.4)',
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  borderRadius: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 24,
+    full: 9999,
+  },
+};

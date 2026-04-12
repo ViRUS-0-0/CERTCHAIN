@@ -41,6 +41,23 @@ async function main() {
     JSON.stringify(artifact.abi, null, 2)
   );
   console.log("ABI copied to frontend/src/abi/CertChain.json");
+
+  // --- Mobile App Sync ---
+  const appAbiDir = path.join(__dirname, "..", "app", "src", "abi");
+  if (fs.existsSync(path.join(__dirname, "..", "app"))) {
+    if (!fs.existsSync(appAbiDir)) {
+      fs.mkdirSync(appAbiDir, { recursive: true });
+    }
+    fs.writeFileSync(
+      path.join(appAbiDir, "address.json"),
+      JSON.stringify({ address }, null, 2)
+    );
+    fs.writeFileSync(
+      path.join(appAbiDir, "CertChain.json"),
+      JSON.stringify(artifact.abi, null, 2)
+    );
+    console.log("Contract address & ABI synced to mobile app (app/src/abi)");
+  }
 }
 
 main().catch((error) => {
