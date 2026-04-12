@@ -1,40 +1,48 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", sans-serif;
-  --font-heading: "Inter", sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap');
 
-  --color-primary: #18181B;
-  --color-secondary: #3F3F46;
-  --color-cta: #2563EB;
-  --color-background: #F4F4F5;
-  --color-surface: rgba(255, 255, 255, 0.65);
-  --color-border: rgba(228, 228, 231, 0.4);
-  --color-subtext: #71717A;
+@theme {
+  --font-sans: "Exo 2", sans-serif;
+  --font-heading: "Orbitron", sans-serif;
+
+  --color-primary: #FAFAF9;
+  --color-secondary: #D6D3D1;
+  --color-cta: #CA8A04;
+  --color-background: #0C0A09;
+  --color-surface: rgba(28, 25, 23, 0.7);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-subtext: #A8A29E;
 }
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-md bg-surface border border-white/40 shadow-sm;
+    @apply backdrop-blur-xl bg-surface border border-white/10 shadow-2xl;
   }
 
   .glass-card {
-    @apply backdrop-blur-xl bg-white/60 border border-white/50 shadow-lg shadow-black/5 rounded-2xl;
+    @apply backdrop-blur-2xl bg-[#1C1917]/60 border border-white/5 shadow-xl transition-all duration-300 rounded-2xl;
   }
 
-  .minimal-button-primary {
-    @apply bg-black/90 text-white rounded-full px-6 py-2 hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-medium shadow-lg shadow-black/10;
+  .glass-gold {
+    @apply backdrop-blur-2xl bg-[#CA8A04]/10 border border-[#CA8A04]/20 shadow-lg shadow-[#CA8A04]/5 rounded-2xl;
   }
 
-  .minimal-input {
-    @apply bg-white/50 border border-gray-200/60 rounded-xl px-4 py-3 text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/10 focus:bg-white/80 transition-all duration-300 w-full backdrop-blur-sm;
+  .premium-button-primary {
+    @apply bg-[#CA8A04] text-white rounded-full px-6 py-3 hover:bg-[#A16207] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 font-bold shadow-lg shadow-[#CA8A04]/20 flex items-center justify-center gap-2;
+  }
+
+  .premium-input {
+    @apply bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-[#CA8A04]/30 focus:border-[#CA8A04]/50 focus:bg-white/10 transition-all duration-300 w-full backdrop-blur-md;
   }
 }
 
 body {
-  @apply bg-gray-50 text-primary antialiased;
-  background-image:
-    radial-gradient(at 0% 0%, rgba(200, 220, 255, 0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(240, 240, 250, 0.3) 0px, transparent 50%);
+  @apply bg-[#0C0A09] text-[#FAFAF9] antialiased;
   background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+::selection {
+  @apply bg-[#CA8A04] text-white;
 }

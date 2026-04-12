@@ -6,7 +6,7 @@ const Input = ({ label, type = "text", placeholder, value, onChange, className =
             {label && <label className="text-sm text-subtext font-medium ml-1">{label}</label>}
             <input
                 type={type}
-                className="minimal-input"
+                className="premium-input"
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
@@ -17,3 +17,4 @@ const Input = ({ label, type = "text", placeholder, value, onChange, className =
 };
 
 export default Input;
+

@@ -6,15 +6,17 @@ import Home from './pages/Home';
 import IssueCertificate from './pages/IssueCertificate';
 import VerifyCertificate from './pages/VerifyCertificate';
 import { WalletProvider } from './context/WalletContext';
+import BlockchainBackground from './components/ui/BlockchainBackground';
 
 function App() {
   return (
     <WalletProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-background selection:bg-black selection:text-white">
+        <div className="min-h-screen flex flex-col bg-background text-primary selection:bg-cta selection:text-white relative overflow-x-hidden">
+          <BlockchainBackground />
           <Navbar />
 
-          <main className="flex-grow">
+          <main className="flex-grow relative z-10">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/issue" element={<IssueCertificate />} />
@@ -28,5 +30,6 @@ function App() {
     </WalletProvider>
   );
 }
+
 
 export default App;

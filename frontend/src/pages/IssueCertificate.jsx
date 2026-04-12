@@ -1,240 +1,270 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useWallet } from '../context/WalletContext';
-import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
+import { FilePlus, Send, Loader2, CheckCircle2, Shield, GraduationCap, Building2, User, Calendar, Copy, Check, AlertCircle } from 'lucide-react';
+import { ethers } from 'ethers';
 import Button from '../components/ui/Button';
-import { AlertCircle, CheckCircle, Loader2, ArrowRight, Copy, Check } from 'lucide-react';
-import { issueCert } from '../utils/contract';
+import Input from '../components/ui/Input';
+import Card from '../components/ui/Card';
+import { useWallet } from '../context/WalletContext';
+import ABI from '../abi/CertChain.json';
+import addressData from '../abi/address.json';
 
 const IssueCertificate = () => {
-    const { isConnected, connect, signer } = useWallet();
+    const { isConnected, signer } = useWallet();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [error, setError] = useState('');
-    const [txResult, setTxResult] = useState(null);
+    const [txHash, setTxHash] = useState('');
+    const [certId, setCertId] = useState('');
     const [copied, setCopied] = useState(false);
+    const [error, setError] = useState('');
+    
     const [formData, setFormData] = useState({
         studentName: '',
-        regNo: '',
+        studentId: '',
         degree: '',
         institution: '',
-        issueDate: '',
+        issueDate: new Date().toISOString().split('T')[0]
     });
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async () => {
-        if (!formData.studentName || !formData.regNo || !formData.degree || !formData.institution || !formData.issueDate) {
-            setError('Please fill in all fields.');
+    const handleIssue = async (e) => {
+        e.preventDefault();
+        if (!isConnected) {
+            setError("Please connect your wallet first");
             return;
         }
 
         setError('');
         setLoading(true);
-
         try {
-            let activeSigner = signer;
+            const activeSigner = signer || await (await new ethers.BrowserProvider(window.ethereum)).getSigner();
+            const contract = new ethers.Contract(addressData.address, ABI, activeSigner);
 
-            // If not connected, connect first
-            if (!isConnected || !activeSigner) {
-                await connect();
-                // After connect, signer is in context but we need to get it fresh
-                // since state update is async, we re-import
-                const { connectWallet } = await import('../utils/wallet.js');
-                const wallet = await connectWallet();
-                activeSigner = wallet.signer;
-            }
+            // Generate a simple hash of the data (In a real app, this should be consistent)
+            const payload = `${formData.studentId}-${formData.studentName}-${formData.degree}-${formData.issueDate}`;
+            const generatedCertId = ethers.id(payload);
 
-            const result = await issueCert(activeSigner, formData);
-            setTxResult(result);
+            const tx = await contract.issue(
+                generatedCertId,
+                formData.studentName,
+                formData.studentId,
+                formData.degree,
+                formData.institution,
+                formData.issueDate
+            );
+
+            const receipt = await tx.wait();
+            setTxHash(receipt.hash);
+            setCertId(generatedCertId);
             setSuccess(true);
         } catch (err) {
-            console.error('Issue error:', err);
-            if (err.reason) {
-                setError(`Transaction failed: ${err.reason}`);
-            } else if (err.message?.includes('user rejected')) {
-                setError('Transaction was rejected by user.');
-            } else {
-                setError(err.message || 'Failed to issue certificate.');
-            }
+            console.error(err);
+            setError(err.reason || err.message || "Transaction failed");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCopyCertId = () => {
-        if (txResult?.certId) {
-            navigator.clipboard.writeText(txResult.certId);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleReset = () => {
-        setSuccess(false);
-        setTxResult(null);
-        setError('');
-        setFormData({
-            studentName: '',
-            regNo: '',
-            degree: '',
-            institution: '',
-            issueDate: '',
-        });
-    };
-
-    if (!isConnected) {
+    if (success) {
         return (
-            <div className="pt-32 container mx-auto px-6 flex justify-center">
+            <div className="container mx-auto px-6 pt-40 pb-20 max-w-2xl text-center relative z-10">
                 <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-lg text-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass-card p-12 border-cta/20"
                 >
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <AlertCircle className="w-8 h-8 text-primary" />
+                    <div className="w-20 h-20 bg-cta/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-10 h-10 text-cta" />
                     </div>
-                    <h3 className="font-bold text-primary text-xl mb-2">Connect Wallet Required</h3>
+                    <h2 className="text-3xl font-heading font-bold text-white mb-4">Certificate Issued</h2>
                     <p className="text-subtext mb-8">
-                        You need to connect your wallet to interact with the blockchain and issue certificates.
+                        The credential has been successfully recorded on the blockchain.
                     </p>
-                    <Button onClick={connect} variant="primary" className="mx-auto">
-                        Connect Wallet
-                    </Button>
+
+                    <div className="space-y-4 mb-8">
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/5 text-left">
+                            <div className="flex justify-between items-center mb-1">
+                                <p className="text-[10px] text-cta uppercase tracking-widest font-bold">Certificate ID</p>
+                                <button onClick={() => handleCopy(certId)} className="text-cta hover:text-white transition-colors">
+                                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                            </div>
+                            <p className="text-sm font-mono text-subtext break-all">{certId}</p>
+                        </div>
+
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/5 text-left">
+                            <p className="text-[10px] text-cta uppercase tracking-widest font-bold mb-1">Transaction Hash</p>
+                            <p className="text-sm font-mono text-subtext break-all">{txHash}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Button
+                            variant="primary"
+                            className="flex-1 rounded-full"
+                            onClick={() => {
+                                setSuccess(false);
+                                setFormData({
+                                    studentName: '',
+                                    studentId: '',
+                                    degree: '',
+                                    institution: '',
+                                    issueDate: new Date().toISOString().split('T')[0]
+                                });
+                            }}
+                        >
+                            Issue Another
+                        </Button>
+                        <a
+                            href={`https://etherscan.io/tx/${txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1"
+                        >
+                            <Button variant="secondary" className="w-full rounded-full">
+                                View on Etherscan
+                            </Button>
+                        </a>
+                    </div>
                 </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="pt-12 pb-12 container mx-auto px-6">
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-2xl mx-auto"
-            >
-                <div className="mb-10">
-                    <h1 className="text-3xl font-heading font-bold mb-2 text-primary">Issue New Certificate</h1>
-                    <p className="text-subtext">Fill in the details below to mint a certificate on the blockchain.</p>
-                </div>
+        <div className="container mx-auto px-6 pt-40 pb-20 max-w-5xl relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16 items-start">
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-8"
+                >
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-cta/10 text-cta rounded-full text-[10px] font-bold uppercase tracking-widest border border-cta/20 mb-4">
+                            <FilePlus className="w-3 h-3" />
+                            <span>Issuer Dashboard</span>
+                        </div>
+                        <h1 className="text-5xl font-heading font-bold text-white leading-tight">
+                            Issue New <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cta to-orange-400">Credential</span>
+                        </h1>
+                        <p className="text-subtext text-lg mt-6 leading-relaxed">
+                            Securing achievements on the Ethereum network. Enter the student's details below to mint their immutable certificate.
+                        </p>
+                    </div>
 
-                {success && txResult ? (
-                    <Card className="text-center py-12 px-8">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="inline-flex items-center justify-center w-16 h-16 bg-green-50 text-green-600 rounded-full mb-6"
-                        >
-                            <CheckCircle className="w-8 h-8" />
-                        </motion.div>
-                        <h2 className="text-2xl font-bold font-heading text-primary mb-2">Certificate Minted</h2>
-                        <p className="text-subtext mb-6 max-w-sm mx-auto">The certificate has been successfully recorded on the blockchain.</p>
-
-                        {/* Certificate ID */}
-                        <div className="bg-gray-50 border border-border rounded-lg p-4 mb-4 text-left">
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-subtext uppercase tracking-wider font-medium">Certificate ID</span>
-                                <button
-                                    onClick={handleCopyCertId}
-                                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
-                                >
-                                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                    {copied ? 'Copied!' : 'Copy'}
-                                </button>
+                    <div className="space-y-4">
+                        {[
+                            { icon: Shield, text: "Instant non-transferable issuance" },
+                            { icon: GraduationCap, text: "Immutable cryptographic proof" },
+                            { icon: Building2, text: "Publicly verifiable by anyone" },
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-3 text-subtext">
+                                <item.icon className="w-5 h-5 text-cta" />
+                                <span className="font-medium">{item.text}</span>
                             </div>
-                            <p className="font-mono text-sm text-primary break-all">{txResult.certId}</p>
-                        </div>
+                        ))}
+                    </div>
+                </motion.div>
 
-                        {/* Transaction Hash */}
-                        <div className="bg-gray-50 border border-border rounded-lg p-4 mb-8 text-left">
-                            <span className="text-xs text-subtext uppercase tracking-wider font-medium block mb-1">Transaction Hash</span>
-                            <p className="font-mono text-xs text-blue-600 break-all">{txResult.txHash}</p>
-                        </div>
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <Card className="p-8 border-white/5 relative overflow-hidden">
+                        {/* Subtle background glow */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cta/10 blur-3xl -z-10" />
 
-                        <div className="flex flex-col sm:flex-row justify-center gap-3">
-                            <Button onClick={handleReset} variant="secondary">Issue Another</Button>
-                        </div>
-                    </Card>
-                ) : (
-                    <Card className="p-0 border-0 shadow-none bg-transparent">
-                        <div className="space-y-6 bg-surface border border-border rounded-xl p-8 shadow-sm">
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-red-50 border border-red-100 text-red-700 rounded-lg p-4 text-sm flex items-start gap-3"
-                                >
-                                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
-                                    <span>{error}</span>
-                                </motion.div>
-                            )}
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex gap-3">
+                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                <p>{error}</p>
+                            </div>
+                        )}
 
-                            <div className="grid md:grid-cols-2 gap-6">
+                        <form onSubmit={handleIssue} className="space-y-6">
+                            <div className="grid sm:grid-cols-2 gap-6">
                                 <Input
                                     label="Student Name"
-                                    placeholder="e.g. John Doe"
-                                    name="studentName"
+                                    placeholder="e.g. Satoshi Nakamoto"
                                     value={formData.studentName}
-                                    onChange={handleChange}
+                                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                                    required
                                 />
                                 <Input
-                                    label="Registration Number"
-                                    placeholder="e.g. 21BCE1234"
-                                    name="regNo"
-                                    value={formData.regNo}
-                                    onChange={handleChange}
+                                    label="Student ID"
+                                    placeholder="e.g. SID-2024-001"
+                                    value={formData.studentId}
+                                    onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                                    required
                                 />
                             </div>
 
                             <Input
-                                label="Degree / Course"
-                                placeholder="e.g. B.Tech Computer Science"
-                                name="degree"
-                                value={formData.degree}
-                                onChange={handleChange}
+                                label="Institution Name"
+                                placeholder="e.g. University of Decentralization"
+                                value={formData.institution}
+                                onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                                required
                             />
 
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid sm:grid-cols-2 gap-6">
                                 <Input
-                                    label="Institution"
-                                    placeholder="e.g. VIT University"
-                                    name="institution"
-                                    value={formData.institution}
-                                    onChange={handleChange}
+                                    label="Degree / Certificate Name"
+                                    placeholder="e.g. B.Sc in Cryptography"
+                                    value={formData.degree}
+                                    onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+                                    required
                                 />
                                 <Input
                                     label="Issue Date"
-                                    placeholder="e.g. 2025-06-15"
-                                    name="issueDate"
+                                    type="date"
                                     value={formData.issueDate}
-                                    onChange={handleChange}
+                                    onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
+                                    required
                                 />
                             </div>
 
-                            <div className="pt-4 border-t border-border mt-4">
-                                <Button
-                                    onClick={handleSubmit}
-                                    variant="primary"
-                                    className="w-full py-3"
-                                    disabled={loading}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            Minting on Blockchain...
-                                        </>
-                                    ) : (
-                                        'Issue Certificate'
-                                    )}
-                                </Button>
+                            <div className="pt-4">
+                                {!isConnected ? (
+                                    <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl text-orange-400 text-sm flex gap-3">
+                                        <Building2 className="w-5 h-5 shrink-0" />
+                                        <p>Please connect your wallet to the local hardhat network to issue certificates.</p>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        type="submit"
+                                        variant="primary"
+                                        className="w-full h-14 rounded-xl text-lg group"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                                                <span className="text-white">Processing Transaction...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="text-white">Mint Certificate</span>
+                                                <Send className="w-5 h-5 text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
                             </div>
-                        </div>
+                        </form>
                     </Card>
-                )}
-            </motion.div>
+                    <p className="text-center text-[10px] text-stone-600 mt-6 uppercase tracking-widest font-medium">
+                        Secured by Ethereum Smart Contract: {addressData?.address?.substring(0, 10)}...
+                    </p>
+                </motion.div>
+            </div>
         </div>
     );
 };

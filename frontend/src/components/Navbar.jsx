@@ -20,11 +20,11 @@ const Navbar = () => {
                 <motion.div
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="glass rounded-full px-2 py-2 flex items-center justify-between gap-8 md:min-w-[700px] max-w-5xl w-full shadow-xl shadow-black/5"
+                    className="glass rounded-full px-2 py-2 flex items-center justify-between gap-8 md:min-w-[700px] max-w-5xl w-full shadow-2xl backdrop-blur-2xl bg-[#1C1917]/80 border-white/5"
                 >
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2 pl-4 pr-2 group">
-                        <div className="p-1.5 bg-black rounded-full text-white group-hover:bg-blue-600 transition-colors duration-300">
+                        <div className="p-1.5 bg-cta rounded-full text-white group-hover:bg-[#A16207] transition-all duration-300 shadow-lg shadow-cta/20">
                             <ShieldCheck className="w-4 h-4" />
                         </div>
                         <span className="font-bold font-heading text-primary tracking-tight hidden sm:block">
@@ -33,20 +33,20 @@ const Navbar = () => {
                     </Link>
 
                     {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center bg-gray-100/50 rounded-full p-1 border border-white/20">
+                    <div className="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
                         {navLinks.map((link) => {
                             const isActive = location.pathname === link.path;
                             return (
                                 <Link
                                     key={link.path}
                                     to={link.path}
-                                    className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isActive ? 'text-black' : 'text-gray-500 hover:text-black'
+                                    className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-subtext hover:text-white'
                                         }`}
                                 >
                                     {isActive && (
                                         <motion.div
                                             layoutId="nav-pill"
-                                            className="absolute inset-0 bg-white rounded-full shadow-sm border border-black/5"
+                                            className="absolute inset-0 bg-white/10 rounded-full shadow-sm border border-white/5"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
@@ -62,7 +62,7 @@ const Navbar = () => {
                             <WalletConnect />
                         </div>
                         <button
-                            className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors text-primary"
+                            className="md:hidden p-2 rounded-full hover:bg-white/5 transition-colors text-primary"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         >
                             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -80,21 +80,21 @@ const Navbar = () => {
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
                         className="fixed top-24 left-6 right-6 z-40 md:hidden"
                     >
-                        <div className="glass-card p-6 flex flex-col gap-4 shadow-2xl">
+                        <div className="glass-card p-6 flex flex-col gap-4 shadow-2xl bg-[#1C1917]/95 border-white/10">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.path}
                                     to={link.path}
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={`text-lg font-medium p-4 rounded-xl transition-colors ${location.pathname === link.path
-                                            ? 'bg-black/5 text-black'
-                                            : 'text-gray-500 hover:bg-gray-50 hover:text-black'
+                                            ? 'bg-cta/10 text-cta border border-cta/20'
+                                            : 'text-subtext hover:bg-white/5 hover:text-white'
                                         }`}
                                 >
                                     {link.name}
                                 </Link>
                             ))}
-                            <div className="pt-4 border-t border-gray-100 flex justify-center">
+                            <div className="pt-4 border-t border-white/5 flex justify-center">
                                 <WalletConnect />
                             </div>
                         </div>
@@ -106,3 +106,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

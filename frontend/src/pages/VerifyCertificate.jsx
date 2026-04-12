@@ -1,175 +1,222 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, ShieldCheck, XCircle, Loader2, AlertCircle } from 'lucide-react';
-import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, Search, Loader2, AlertCircle, CheckCircle2, Copy, ExternalLink, GraduationCap, Building2, User } from 'lucide-react';
+import { ethers } from 'ethers';
 import Button from '../components/ui/Button';
-import { verifyCert } from '../utils/contract';
-import { connectWallet } from '../utils/wallet';
+import Input from '../components/ui/Input';
+import Card from '../components/ui/Card';
+import ABI from '../abi/CertChain.json';
+import addressData from '../abi/address.json';
 
 const VerifyCertificate = () => {
-    const [certId, setCertId] = useState('');
-    const [result, setResult] = useState(null); // null | { exists: true, ...data } | { exists: false }
+    const [searchParams] = useSearchParams();
+    const [certId, setCertId] = useState(searchParams.get('id') || '');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [cert, setCert] = useState(null);
+    const [error, setError] = useState(null);
 
-    const handleVerify = async () => {
-        if (!certId.trim()) return;
+    useEffect(() => {
+        if (searchParams.get('id')) {
+            handleVerify(null, searchParams.get('id'));
+        }
+    }, [searchParams]);
+
+    const handleVerify = async (e, id = certId) => {
+        if (e) e.preventDefault();
+        if (!id) return;
 
         setLoading(true);
-        setResult(null);
-        setError('');
+        setError(null);
+        setCert(null);
 
         try {
-            let provider;
+            const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+            const contract = new ethers.Contract(addressData.address, ABI, provider);
 
-            if (window.ethereum) {
-                const wallet = await connectWallet();
-                provider = wallet.provider;
+            const result = await contract.verify(id);
+            if (result[0]) {
+                setCert({
+                    id,
+                    studentName: result[1],
+                    studentId: result[2],
+                    degree: result[3],
+                    institution: result[4],
+                    issueDate: result[5],
+                    issuer: result[6],
+                    timestamp: Number(result[7])
+                });
             } else {
-                // Fallback to local hardhat node directly
-                const { ethers } = await import('ethers');
-                provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+                setError("This certificate ID was not found or is invalid.");
             }
-
-            const data = await verifyCert(provider, certId.trim());
-            setResult(data);
         } catch (err) {
-            console.error('Verify error:', err);
-            setError(err.message || 'Failed to verify certificate.');
+            console.error(err);
+            setError("Could not verify certificate. Ensure the ID is correct.");
         } finally {
             setLoading(false);
         }
     };
 
-    const formatTimestamp = (ts) => {
-        if (!ts) return 'N/A';
-        return new Date(ts * 1000).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const shortenAddress = (addr) => {
-        if (!addr) return 'N/A';
-        return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
     };
 
     return (
-        <div className="pt-24 pb-12 container mx-auto px-6 flex flex-col items-center">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-xl"
-            >
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-heading font-bold mb-3 text-primary">Verify Certificate</h1>
-                    <p className="text-subtext">
-                        Enter the certificate ID below to instantly verify its authenticity.
-                    </p>
-                </div>
+        <div className="container mx-auto px-6 pt-40 pb-20 max-w-4xl">
+            <div className="text-center mb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-cta/10 text-cta rounded-full text-[10px] font-bold uppercase tracking-widest border border-cta/20 mb-4"
+                >
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>On-Chain Verification</span>
+                </motion.div>
+                <h1 className="text-5xl font-heading font-bold text-white mb-6">Verify <span className="text-cta">Authenticity</span></h1>
+                <p className="text-subtext max-w-xl mx-auto leading-relaxed">
+                    Instantly validate credentials against the Ethereum ledger. 
+                    Enter the Certificate ID below to see the immutable record.
+                </p>
+            </div>
 
-                <div className="bg-surface p-2 rounded-xl border border-border shadow-sm flex items-center gap-2 mb-12 focus-within:ring-2 focus-within:ring-primary/10 transition-shadow">
-                    <Search className="w-5 h-5 text-subtext ml-3" />
-                    <input
-                        type="text"
-                        placeholder="Certificate ID (e.g. 21BCE1234_1713500000)"
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-primary placeholder-gray-400 h-10 text-base outline-none"
+            <div className="max-w-2xl mx-auto mb-12">
+                <form onSubmit={handleVerify} className="relative group">
+                    <Input
+                        placeholder="Enter Certificate ID (0x...)"
                         value={certId}
                         onChange={(e) => setCertId(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
+                        className="w-full"
                     />
-                    <Button onClick={handleVerify} disabled={loading} className="h-10 px-6 rounded-lg" variant="primary">
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Verifying...
-                            </>
-                        ) : (
-                            'Verify'
-                        )}
-                    </Button>
-                </div>
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-2">
+                        <Button 
+                            type="submit" 
+                            variant="primary" 
+                            className="h-11 rounded-lg px-6"
+                            disabled={loading}
+                        >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Search className="w-4 h-4 text-white" />}
+                            <span className="text-white">Verify</span>
+                        </Button>
+                    </div>
+                </form>
+            </div>
+
+            <AnimatePresence mode="wait">
+                {loading && (
+                    <motion.div
+                        key="loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center justify-center py-20 text-subtext"
+                    >
+                        <Loader2 className="w-10 h-10 animate-spin mb-4 text-cta" />
+                        <p className="font-medium">Querying Blockchain Ledger...</p>
+                    </motion.div>
+                )}
 
                 {error && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3 mb-6"
+                        key="error"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="glass-card p-8 border-red-500/20 bg-red-500/5 text-center"
                     >
-                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-red-700 text-sm">{error}</p>
+                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-white mb-2">Verification Failed</h3>
+                        <p className="text-red-400/80">{error}</p>
                     </motion.div>
                 )}
 
-                {result && result.exists && (
+                {cert && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        key="cert"
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-surface border border-border rounded-xl p-8 shadow-sm"
+                        className="relative"
                     >
-                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border">
-                            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-                                <ShieldCheck className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-primary">Valid Certificate</h3>
-                                <p className="text-green-600 text-sm font-medium">Verified on Blockchain</p>
-                            </div>
-                        </div>
+                        <Card className="overflow-hidden border-cta/20 bg-gradient-to-br from-[#1C1917] to-[#0C0A09] p-0 shadow-2xl">
+                            {/* Certificate Header Decoration */}
+                            <div className="h-2 bg-gradient-to-r from-cta to-orange-400 w-full" />
+                            
+                            <div className="p-10 md:p-14">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 bg-cta/10 rounded-2xl flex items-center justify-center text-cta border border-cta/20">
+                                            <CheckCircle2 className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <span className="inline-block px-3 py-0.5 rounded-full bg-cta text-white text-[10px] font-bold uppercase tracking-widest mb-1.5 font-sans">Verified ✅</span>
+                                            <h2 className="text-3xl font-heading font-bold text-white">Academic Record</h2>
+                                        </div>
+                                    </div>
+                                    <div className="text-right hidden md:block">
+                                        <p className="text-[10px] text-cta uppercase tracking-widest font-bold mb-1">Issue Date</p>
+                                        <p className="text-lg font-medium text-white">{cert.issueDate}</p>
+                                    </div>
+                                </div>
 
-                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Student Name</dt>
-                                <dd className="text-primary font-medium">{result.studentName}</dd>
+                                <div className="grid md:grid-cols-2 gap-12">
+                                    <div className="space-y-6">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-cta uppercase tracking-widest font-bold">Student Name</label>
+                                            <p className="text-2xl font-bold text-white flex items-center gap-2">
+                                                <User className="w-5 h-5 text-subtext" />
+                                                {cert.studentName}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-cta uppercase tracking-widest font-bold">Degree / Program</label>
+                                            <p className="text-xl font-medium text-white flex items-center gap-2">
+                                                <GraduationCap className="w-5 h-5 text-subtext" />
+                                                {cert.degree}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-cta uppercase tracking-widest font-bold">Institution</label>
+                                            <p className="text-xl font-medium text-white flex items-center gap-2">
+                                                <Building2 className="w-5 h-5 text-subtext" />
+                                                {cert.institution}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-cta uppercase tracking-widest font-bold">Student ID</label>
+                                            <p className="text-lg font-medium text-white font-mono">{cert.studentId}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-16 pt-8 border-t border-white/5 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <label className="text-[10px] text-subtext uppercase tracking-widest font-bold mb-2 block">Blockchain Certificate ID</label>
+                                        <div className="flex items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/5 font-mono text-xs text-subtext truncate group">
+                                            <span className="truncate">{cert.id}</span>
+                                            <button onClick={() => copyToClipboard(cert.id)} className="text-cta hover:text-white transition-colors">
+                                                <Copy className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-subtext uppercase tracking-widest font-bold mb-2 block">Issuer Address</label>
+                                        <div className="flex items-center gap-2 bg-white/5 p-3 rounded-lg border border-white/5 font-mono text-xs text-subtext truncate">
+                                            <span className="truncate">{cert.issuer}</span>
+                                            <a href={`https://etherscan.io/address/${cert.issuer}`} target="_blank" rel="noopener noreferrer" className="text-cta hover:text-white">
+                                                <ExternalLink className="w-4 h-4" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Registration No.</dt>
-                                <dd className="text-primary font-medium">{result.regNo}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Degree</dt>
-                                <dd className="text-primary font-medium">{result.degree}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Institution</dt>
-                                <dd className="text-primary font-medium">{result.institution}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Issue Date</dt>
-                                <dd className="text-primary font-medium">{result.issueDate}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Minted On</dt>
-                                <dd className="text-primary font-medium">{formatTimestamp(result.timestamp)}</dd>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <dt className="text-xs text-subtext uppercase tracking-wider mb-1">Issuer Address</dt>
-                                <dd className="text-blue-600 font-mono text-xs bg-blue-50 px-2 py-1 rounded w-fit">{result.issuedBy}</dd>
-                            </div>
-                        </dl>
+                        </Card>
+                        
+                        <div className="absolute -top-6 -right-6 w-32 h-32 bg-cta/20 rounded-full blur-[60px] pointer-events-none" />
                     </motion.div>
                 )}
-
-                {result && !result.exists && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-red-50 border border-red-100 rounded-xl p-6 flex gap-4"
-                    >
-                        <XCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                            <h3 className="font-bold text-red-700 mb-1">Certificate Not Found</h3>
-                            <p className="text-red-600/80 text-sm">
-                                The certificate ID provided could not be found on the blockchain. Please check the ID and try again.
-                            </p>
-                        </div>
-                    </motion.div>
-                )}
-            </motion.div>
+            </AnimatePresence>
         </div>
     );
 };

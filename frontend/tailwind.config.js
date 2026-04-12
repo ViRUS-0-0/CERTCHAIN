@@ -6,28 +6,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#18181B",
-        secondary: "#3F3F46",
-        cta: "#2563EB",
-        background: "#FAFAFA",
-        surface: "rgba(255, 255, 255, 0.65)", // Glass surface
-        border: "rgba(228, 228, 231, 0.4)",  // Glass border
-        subtext: "#71717A",
+        primary: "#FAFAF9",
+        secondary: "#D6D3D1",
+        cta: "#CA8A04",
+        background: "#0C0A09",
+        surface: "rgba(28, 25, 23, 0.7)", 
+        border: "rgba(255, 255, 255, 0.1)",
+        subtext: "#A8A29E",
       },
       fontFamily: {
-        sans: ['"Inter"', 'sans-serif'],
-        heading: ['"Inter"', 'sans-serif'],
+        sans: ['"Exo 2"', 'sans-serif'],
+        heading: ['"Orbitron"', 'sans-serif'],
       },
       backdropBlur: {
         xs: '2px',
         md: '12px',
         lg: '16px',
         xl: '24px',
+        '2xl': '40px',
       },
-      backgroundImage: {
-        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-      }
     },
   },
   plugins: [],
 }
+
