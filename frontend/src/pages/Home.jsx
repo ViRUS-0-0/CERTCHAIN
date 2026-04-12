@@ -1,12 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Globe, FileCheck, ArrowRight, ExternalLink, Sparkles } from 'lucide-react';
+import { Shield, Globe, FileCheck, ArrowRight, ExternalLink, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ethers } from 'ethers';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import { recentCertificates } from '../utils/mockData';
+import ABI from '../abi/CertChain.json';
+import addressData from '../abi/address.json';
 
 const Home = () => {
+    const [liveCerts, setLiveCerts] = useState([]);
+    const [loadingCerts, setLoadingCerts] = useState(true);
+
+    useEffect(() => {
+        fetchRecentCerts();
+    }, []);
+
+    const fetchRecentCerts = async () => {
+        try {
+            const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+            const contract = new ethers.Contract(addressData.address, ABI, provider);
+
+            // Query all Issued events
+            const filter = contract.filters.Issued();
+            const events = await contract.queryFilter(filter, 0, 'latest');
+
+            // Get cert details for each event (most recent first)
+            const certs = [];
+            for (const event of events.slice(-10).reverse()) {
+                const certId = event.args[0];
+                const issuedBy = event.args[1];
+                try {
+                    const result = await contract.verify(certId);
+                    certs.push({
+                        certId,
+                        studentName: result[1],
+                        degree: result[3],
+                        institution: result[4],
+                        issueDate: result[5],
+                        issuedBy,
+                        timestamp: Number(result[7]),
+                        txHash: event.transactionHash,
+                    });
+                } catch (e) {
+                    console.warn('Failed to fetch cert:', certId, e);
+                }
+            }
+
+            setLiveCerts(certs);
+        } catch (err) {
+            console.error('Failed to fetch live activity:', err);
+        } finally {
+            setLoadingCerts(false);
+        }
+    };
+
+    const formatTimestamp = (ts) => {
+        if (!ts) return 'N/A';
+        return new Date(ts * 1000).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
+    const shortenHash = (hash) => {
+        if (!hash) return '';
+        return `${hash.substring(0, 8)}...`;
+    };
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -111,58 +173,78 @@ const Home = () => {
                 </motion.div>
             </section>
 
-            {/* Recent Activity */}
+            {/* Recent Activity — Live from Blockchain */}
             <section className="container mx-auto px-6 max-w-5xl relative z-10">
                 <div className="flex justify-between items-end mb-8 px-2">
                     <div>
                         <h2 className="text-2xl font-heading font-bold text-primary">Live Activity</h2>
                         <p className="text-subtext text-sm mt-1">Real-time issuance on the network</p>
                     </div>
-                    <Button variant="ghost" className="text-subtext hover:bg-white/50 rounded-full px-4">View Explorer</Button>
+                    <Button
+                        variant="ghost"
+                        className="text-subtext hover:bg-white/50 rounded-full px-4"
+                        onClick={fetchRecentCerts}
+                    >
+                        Refresh
+                    </Button>
                 </div>
 
                 <div className="space-y-3">
-                    {recentCertificates.map((cert, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                        >
-                            <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/80 transition-all duration-300 group border-white/40">
-                                <div className="flex items-center gap-4 mb-4 md:mb-0">
-                                    <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-subtext shadow-sm group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
-                                        <FileCheck className="w-5 h-5" />
+                    {loadingCerts ? (
+                        <div className="glass-card p-12 flex flex-col items-center justify-center text-subtext">
+                            <Loader2 className="w-6 h-6 animate-spin mb-3" />
+                            <p className="text-sm">Fetching on-chain activity...</p>
+                        </div>
+                    ) : liveCerts.length === 0 ? (
+                        <div className="glass-card p-12 text-center text-subtext">
+                            <FileCheck className="w-8 h-8 mx-auto mb-3 opacity-40" />
+                            <p className="font-medium text-primary mb-1">No certificates issued yet</p>
+                            <p className="text-sm">Issue your first certificate to see it appear here.</p>
+                        </div>
+                    ) : (
+                        liveCerts.map((cert, index) => (
+                            <motion.div
+                                key={cert.certId}
+                                initial={{ opacity: 0, y: 10 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                viewport={{ once: true }}
+                            >
+                                <div className="glass-card p-5 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/80 transition-all duration-300 group border-white/40">
+                                    <div className="flex items-center gap-4 mb-4 md:mb-0">
+                                        <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-subtext shadow-sm group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
+                                            <FileCheck className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-primary">{cert.studentName}</h3>
+                                            <p className="text-sm text-subtext">{cert.degree}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-primary">{cert.studentName}</h3>
-                                        <p className="text-sm text-subtext">{cert.course}</p>
-                                    </div>
-                                </div>
 
-                                <div className="flex items-center gap-6 md:gap-12 pl-14 md:pl-0">
-                                    <div className="hidden md:block text-right">
-                                        <p className="text-[10px] text-subtext uppercase tracking-wider mb-0.5">Time</p>
-                                        <p className="text-sm font-medium text-gray-600">{cert.date}</p>
-                                    </div>
-                                    <div className="hidden md:block text-right">
-                                        <p className="text-[10px] text-subtext uppercase tracking-wider mb-0.5">Hash</p>
-                                        <p className="text-sm font-mono text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{cert.id.substring(0, 8)}...</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border ${cert.status === 'Verified' ? 'bg-green-50/50 border-green-100 text-green-700' : 'bg-yellow-50/50 border-yellow-100 text-yellow-700'
-                                            }`}>
-                                            {cert.status}
-                                        </span>
-                                        <Button variant="ghost" className="p-2 h-8 w-8 rounded-full hover:bg-gray-100">
-                                            <ExternalLink className="w-4 h-4 text-gray-400" />
-                                        </Button>
+                                    <div className="flex items-center gap-6 md:gap-12 pl-14 md:pl-0">
+                                        <div className="hidden md:block text-right">
+                                            <p className="text-[10px] text-subtext uppercase tracking-wider mb-0.5">Time</p>
+                                            <p className="text-sm font-medium text-gray-600">{formatTimestamp(cert.timestamp)}</p>
+                                        </div>
+                                        <div className="hidden md:block text-right">
+                                            <p className="text-[10px] text-subtext uppercase tracking-wider mb-0.5">Tx Hash</p>
+                                            <p className="text-sm font-mono text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{shortenHash(cert.txHash)}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border bg-green-50/50 border-green-100 text-green-700">
+                                                Verified
+                                            </span>
+                                            <Link to={`/verify?id=${encodeURIComponent(cert.certId)}`}>
+                                                <Button variant="ghost" className="p-2 h-8 w-8 rounded-full hover:bg-gray-100">
+                                                    <ExternalLink className="w-4 h-4 text-gray-400" />
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))
+                    )}
                 </div>
             </section>
         </div>
